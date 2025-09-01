@@ -7,7 +7,7 @@ from src.api.main import app
 
 def start_celery_worker():
     subprocess.run(
-        ["celery", "-A", "src.api.tasks.celery_app", "worker", "--loglevel=info"]
+        ["celery", "-A", "src.api.tasks.celery_app", "worker", "--loglevel=info", "--logfile=./celery.log"]
     )
 
 

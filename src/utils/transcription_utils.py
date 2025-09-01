@@ -1,11 +1,11 @@
 import subprocess
 import logging
 
-from src.api.config import HF_TOKEN
+from src.api.config import HF_TOKEN, WHISPERX_API_DATA_PATH, WHISPERX_CPU_ONLY
 
 
 def run_whisperx(temp_mp3_path, lang, model, min_speakers, max_speakers, prompt):
-    output_dir = "./data/"
+    output_dir = WHISPERX_API_DATA_PATH
 
     # Start building the base command
     cmd = [
@@ -18,6 +18,9 @@ def run_whisperx(temp_mp3_path, lang, model, min_speakers, max_speakers, prompt)
         "--align_model", "WAV2VEC2_ASR_LARGE_LV60K_960H",
         "--verbose", "False"
     ]
+
+    if WHISPERX_CPU_ONLY:
+        cmd.extend(["--device", "cpu"])
 
     # Include the prompt if provided
     if prompt:

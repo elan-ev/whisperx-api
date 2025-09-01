@@ -56,3 +56,11 @@ class ModelEnum(str, Enum):
 class ResponseTypeEnum(str, Enum):
     json = "json"
     file = "file"
+
+
+class WebhookStatusEnum(str, Enum):
+    starting = "starting"
+    processing = "processing"
+    succeeded = "succeeded"
+    failed = "failed"
+    canceled = "canceled"

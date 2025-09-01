@@ -3,34 +3,20 @@ import tempfile
 from unittest.mock import MagicMock, patch
 from src.utils.file_utils import (
     create_directories,
-    save_uploaded_file,
     convert_to_mp3,
     read_output_files,
     zip_files,
 )
 
+from src.api.config import FFMPEG_BIN, WHISPERX_API_DATA_PATH, WHISPERX_API_TEMP_PATH
 
 def test_create_directories():
     # Test that the directories are created if they don't exist
     with tempfile.TemporaryDirectory() as temp_dir:
         os.chdir(temp_dir)
         create_directories()
-        assert os.path.exists("./temp")
-        assert os.path.exists("./data")
-
-
-def test_save_uploaded_file():
-    # Test that the uploaded file is saved correctly
-    with tempfile.TemporaryDirectory() as temp_dir:
-        os.chdir(temp_dir)
-        os.makedirs("./temp")
-        file_mock = MagicMock()
-        file_mock.filename = "test.mp4"
-        file_mock.file.read.return_value = b"file content"
-        temp_video_path = save_uploaded_file(file_mock)
-        assert os.path.exists(temp_video_path)
-        with open(temp_video_path, "rb") as f:
-            assert f.read() == b"file content"
+        assert os.path.exists(WHISPERX_API_TEMP_PATH)
+        assert os.path.exists(WHISPERX_API_DATA_PATH)
 
 
 def test_convert_to_mp3(mocker):
@@ -54,7 +40,7 @@ def test_convert_to_mp3(mocker):
 
         # Check if ffmpeg command was called with the correct arguments
         mock_run.assert_called_once_with(
-            ["ffmpeg", "-y", "-i", video_file_path, temp_mp3_path], check=True
+            [FFMPEG_BIN, "-y", "-i", video_file_path, temp_mp3_path], check=True
         )
 
 
@@ -62,15 +48,15 @@ def test_read_output_files():
     # Test that the output files are read correctly
     with tempfile.TemporaryDirectory() as temp_dir:
         os.chdir(temp_dir)
-        os.makedirs("./data")
+        os.makedirs(WHISPERX_API_DATA_PATH)
         # Create sample output files
-        with open("./data/test.vtt", "w") as f:
+        with open(f"{WHISPERX_API_DATA_PATH}/test.vtt", "w") as f:
             f.write("vtt content")
-        with open("./data/test.txt", "w") as f:
+        with open(f"{WHISPERX_API_DATA_PATH}/test.txt", "w") as f:
             f.write("txt content")
-        with open("./data/test.json", "w") as f:
+        with open(f"{WHISPERX_API_DATA_PATH}/test.json", "w") as f:
             f.write("json content")
-        with open("./data/test.srt", "w") as f:
+        with open(f"{WHISPERX_API_DATA_PATH}/test.srt", "w") as f:
             f.write("srt content")
         output_files = read_output_files("test")
         assert output_files["vtt_content"] == "vtt content"
@@ -87,11 +73,11 @@ def test_zip_files():
     # Test that the files are zipped correctly
     with tempfile.TemporaryDirectory() as temp_dir:
         os.chdir(temp_dir)
-        os.makedirs("./data")
+        os.makedirs(WHISPERX_API_DATA_PATH)
         # Create sample files
-        with open("./data/test.vtt", "w") as f:
+        with open(f"{WHISPERX_API_DATA_PATH}/test.vtt", "w") as f:
             f.write("vtt content")
-        with open("./data/test.txt", "w") as f:
+        with open(f"{WHISPERX_API_DATA_PATH}/test.txt", "w") as f:
             f.write("txt content")
         memory_file = zip_files("test.vtt", "test.txt")
         assert memory_file.getvalue().startswith(

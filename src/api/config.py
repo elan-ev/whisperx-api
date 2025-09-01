@@ -11,9 +11,11 @@ API_HOST = os.getenv("API_HOST", "0.0.0.0")
 
 BROKER_URL = os.getenv("RABBIT_MQ_URI", "amqp://guest:guest@localhost:5672//")
 
-TOKEN_EXPIRATION_DAYS = 7
-SECRET_KEY = os.getenv("SECRET_KEY", "super_secret_key")
-MASTER_KEY = os.getenv("MASTER_KEY", "master_key")
-
-
 HF_TOKEN = os.getenv("HUGGING_FACE_TOKEN", "")
+
+FFMPEG_BIN = os.getenv("FFMPEG_BIN", "ffmpeg")
+FFPROBE_BIN = os.getenv("FFPROBE_BIN", "ffprobe")
+WHISPERX_API_DATA_PATH = os.getenv("WHISPERX_API_DATA_PATH", "./data")
+WHISPERX_API_TEMP_PATH = os.getenv("WHISPERX_API_TEMP_PATH", "./temp")
+
+WHISPERX_CPU_ONLY = os.getenv("WHISPERX_CPU_ONLY", False)

@@ -2,6 +2,12 @@
 
 A FastAPI-based web API for asynchronous audio and video transcription using [WhisperX](https://github.com/m-bain/whisperX).
 
+## License
+
+This project is licensed under the MIT license.
+
+See the [LICENSE](LICENSE) file for details.
+
 ## Overview
 
 This project provides an API to upload media files and receive transcriptions, including alignment and speaker diarization. It leverages Celery task queues and RabbitMQ to handle transcription jobs asynchronously, allowing the API to remain responsive while processing resource-intensive tasks in the background.

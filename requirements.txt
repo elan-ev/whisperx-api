@@ -11,3 +11,4 @@ whisperx
 uvicorn
 fastapi
 python-multipart
+openai-whisper

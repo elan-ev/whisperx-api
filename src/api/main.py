@@ -6,9 +6,9 @@ from typing import Optional
 
 from src.api.config import API_HOST, API_PORT
 from fastapi import FastAPI, HTTPException, Form, UploadFile
-from src.api.models import LanguageEnum, ModelEnum
+from src.api.models import LanguageEnum, ModelEnum, WebhookStatusEnum
 from src.api.tasks import transcribe_file, celery_app
-from src.utils.file_utils import create_directories, save_uploaded_file
+from src.utils.file_utils import create_directories
 from celery import states
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -25,6 +25,7 @@ app = FastAPI(
     },
 )
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("whisperx-api")
 
 
 @app.get("/")
@@ -34,22 +35,36 @@ def read_root():
 
 @app.post("/jobs")
 async def create_transcription_job(
-        lang: LanguageEnum = Form(LanguageEnum.pt, description="Language for transcription"),
-        model: ModelEnum = Form(ModelEnum.largeV3, description="Model for transcription"),
-        min_speakers: int = Form(0, description="Minimum number of speakers"),
-        max_speakers: int = Form(0, description="Maximum number of speakers"),
-        file: UploadFile = None,
-        prompt: Optional[str] = Form(None, description="Prompt to guide the transcription (optional)")
+    lang: LanguageEnum = Form(
+        LanguageEnum.pt, description="Language for transcription"
+    ),
+    model: ModelEnum = Form(ModelEnum.largeV3, description="Model for transcription"),
+    min_speakers: int = Form(0, description="Minimum number of speakers"),
+    max_speakers: int = Form(0, description="Maximum number of speakers"),
+    file_url: str = Form(..., description="URL to the audio/video file to transcribe"),
+    prompt: Optional[str] = Form(
+        None, description="Prompt to guide the transcription (optional)"
+    ),
+    webhook_url: Optional[str] = Form(
+        None,
+        description="URL to receive webhook notifications about task state changes",
+    ),
 ):
     try:
         create_directories()
-        temp_video_path = save_uploaded_file(file)
+
         task = transcribe_file.delay(
-            temp_video_path, lang, model, min_speakers, max_speakers, prompt
+            file_url,
+            lang,
+            model,
+            min_speakers=min_speakers,
+            max_speakers=max_speakers,
+            prompt=prompt,
+            webhook_url=webhook_url,
         )
-        return {"task_id": task.id, "status": "PENDING"}
+        return {"task_id": task.id, "status": WebhookStatusEnum.starting}
     except Exception as e:
-        logging.error(f"An error occurred: {str(e)}")
+        logger.error(f"An error occurred: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -96,12 +111,10 @@ if __name__ == "__main__":
     import uvicorn
     from multiprocessing import Process
 
-
     def start_celery_worker():
         subprocess.run(
             ["celery", "-A", "src.api.tasks.celery_app", "worker", "--loglevel=info"]
         )
-
 
     celery_process = Process(target=start_celery_worker)
     celery_process.start()
